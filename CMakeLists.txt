@@ -9,6 +9,7 @@ INCLUDE_DIRECTORIES(${TSPLINE_INCLUDE_DIR})
 
 set(file_list
     ex1
+    ex2
 )
 
 foreach(str ${file_list})
