@@ -26,36 +26,25 @@ int main(int argc, char** argv)
     std::string outfilename = rawname + ".m";
     mfile.open(outfilename.c_str());
 
-    // Write control points
+    // Write control points and weights
     TPointsetPtr tpoints = tspline->getTPointset();
     // WATCH(tpoints->size())
     mfile << "%% Control points" << std::endl;
     mfile << "P = zeros(" << tpoints->size() << ", 3);" << std::endl;
+    mfile << "%% Weight at control points" << std::endl;
+    mfile << "W = zeros(1, " << tpoints->size() << ");" << std::endl;
     i = 0;
     for (TObjVIterator pit = tpoints->iteratorBegin(); pit != tpoints->iteratorEnd(); ++pit)
     {
         ++i;
         TPointPtr paux = std::dynamic_pointer_cast<TPoint>(*pit);
-        paux->setId(i);
+        paux->setId(i); // set id one time
         mfile << "P(" << i << ",:) = [";
         mfile << paux->getX() << " " << paux->getY() << " " << paux->getZ() << "];" << std::endl;
+        mfile << "W(" << i << ") = " << paux->getW() << ";" << std::endl;
     }
-    std::cout << "Write control points successfully." << std::endl;
+    std::cout << "Write control points and weights successfully." << std::endl;
 
-    // Write weight of control points
-    mfile << "%% Weight at control points" << std::endl;
-    mfile << "W = zeros(" << tpoints->size() << ", 1);" << std::endl;
-    i = 0;
-    for (TObjVIterator pit = tpoints->iteratorBegin(); pit != tpoints->iteratorEnd(); ++pit)
-    {
-        ++i;
-        TPointPtr paux = std::dynamic_pointer_cast<TPoint>(*pit);
-        paux->setId(i);
-        mfile << "W(" << i << ",1) = [";
-        mfile << paux->getW() << "];" << std::endl;
-    }
-    std::cout << "Write weight successfully." << std::endl;
-    
     TImagePtr timage = tspline->getTImage();
     // WATCH(timage->sizeFaces())
     // Write knot vector in u-direction
@@ -99,14 +88,14 @@ int main(int argc, char** argv)
     mfile << "params.p2 = " << tspline->getTDegree() << std::endl;
     std::cout << "Write params successfully." << std::endl;
 
-    // write sampling points in parametric coordinates
-    mfile << "%% sampling points in parametric coordinates" << std::endl;
-    mfile << "sampling = ;" << std::endl;
-    mfile << "Pts = zeros (sampling, 2);" << std::endl;
-    mfile << "n = 1;" << std::endl;
-    mfile << "for n = 1: sampling" << std::endl;
-    mfile << "    Pts(n,:)= [(n)/sampling (n)/sampling];" << std::endl;
-    mfile << "end" << std::endl;
+//    // write sampling points in parametric coordinates
+//    mfile << "%% sampling points in parametric coordinates" << std::endl;
+//    mfile << "sampling = ;" << std::endl;
+//    mfile << "Pts = zeros (sampling, 2);" << std::endl;
+//    mfile << "n = 1;" << std::endl;
+//    mfile << "for n = 1: sampling" << std::endl;
+//    mfile << "    Pts(n,:)= [(n)/sampling (n)/sampling];" << std::endl;
+//    mfile << "end" << std::endl;
 
     mfile.close();
     std::cout << "T-Spline is exported to " << outfilename << " successfully" << std::endl;
