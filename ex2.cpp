@@ -33,52 +33,39 @@ int main(int argc, char** argv)
     mfile << "P = zeros(" << tpoints->size() << ", 3);" << std::endl;
     mfile << "%% Weight at control points" << std::endl;
     mfile << "W = zeros(1, " << tpoints->size() << ");" << std::endl;
-    i = 0;
-    for (TObjVIterator pit = tpoints->iteratorBegin(); pit != tpoints->iteratorEnd(); ++pit)
-    {
-        ++i;
-        TPointPtr paux = std::dynamic_pointer_cast<TPoint>(*pit);
-        paux->setId(i); // set id one time
-        mfile << "P(" << i << ",:) = [";
-        mfile << paux->getX() << " " << paux->getY() << " " << paux->getZ() << "];" << std::endl;
-        mfile << "W(" << i << ") = " << paux->getW() << ";" << std::endl;
-    }
-    std::cout << "Write control points and weights successfully." << std::endl;
-
-    TImagePtr timage = tspline->getTImage();
-    // WATCH(timage->sizeFaces())
-    // Write knot vector in u-direction
     mfile << "%% knot vector in u- and v-direction" << std::endl;
     mfile << "Xi = {};" << std::endl;
     mfile << "Eta = {};" << std::endl;
     i = 0;
-    for (TFacVIterator fit = timage->faceIteratorBegin(); fit != timage->faceIteratorEnd(); ++fit)
+    for (TObjVIterator pit = tpoints->iteratorBegin(); pit != tpoints->iteratorEnd(); ++pit)
     {
         ++i;
-        j = 0;
-        for (TNodVIterator nit = (*fit)->blendingNodeIteratorBegin(); nit != (*fit)->blendingNodeIteratorEnd(); ++nit)
-        {
-            ++j;
-            //WATCH2(3, (*nit)->getTVertex()->getId())
+        TPointPtr ptpoint = std::dynamic_pointer_cast<TPoint>(*pit);
+        ptpoint->setId(i); // set id one time
 
-            TNodeV4Ptr pnodev4 = std::dynamic_pointer_cast<TNodeV4>(*nit);
-            std::vector<Real> uknots, vknots;
-            TExtractor::extractUVKnotsFromTNodeV4(pnodev4, uknots, vknots);
+        mfile << "%" << std::endl;
+        mfile << "P(" << i << ",:) = [";
+        mfile << ptpoint->getX() << " " << ptpoint->getY() << " " << ptpoint->getZ() << "];" << std::endl;
 
-            mfile << "Xi{" << (*nit)->getTPoint()->getId() << "} =" ;
-            mfile << " [" ;
-            for (int ii = 0; ii < uknots.size(); ++ii)
-                mfile << " " << uknots[ii] ;                
-            mfile << " ] ;" << std::endl;
+        mfile << "W(" << i << ") = " << ptpoint->getW() << ";" << std::endl;
 
-            mfile << "Eta{" << (*nit)->getTPoint()->getId() << "} =" ;
-            mfile << " [" ;
-            for (int ii = 0; ii < vknots.size(); ++ii)
-                mfile << " " << vknots[ii] ;                
-            mfile << " ] ;" << std::endl;
-        }
+        TNodeV4Ptr pnodev4 = std::dynamic_pointer_cast<TNodeV4>(ptpoint->getTNode());
+        std::vector<Real> uknots, vknots;
+        TExtractor::extractUVKnotsFromTNodeV4(pnodev4, uknots, vknots);
+
+        mfile << "Xi{" << ptpoint->getId() << "} =" ;
+        mfile << " [" ;
+        for (int ii = 0; ii < uknots.size(); ++ii)
+            mfile << " " << uknots[ii];
+        mfile << " ] ;" << std::endl;
+
+        mfile << "Eta{" << ptpoint->getId() << "} =" ;
+        mfile << " [" ;
+        for (int ii = 0; ii < vknots.size(); ++ii)
+            mfile << " " << vknots[ii];
+        mfile << " ] ;" << std::endl;
     }
-    std::cout << "Write knot vectors successfully." << std::endl;
+    std::cout << "Write control points, weights and knot vectors successfully." << std::endl;
 
     // write order in u- and v-direction
     int p1 = tspline->getSDegree();
@@ -87,15 +74,6 @@ int main(int argc, char** argv)
     mfile << "params.p1 = " << tspline->getSDegree() << std::endl;
     mfile << "params.p2 = " << tspline->getTDegree() << std::endl;
     std::cout << "Write params successfully." << std::endl;
-
-//    // write sampling points in parametric coordinates
-//    mfile << "%% sampling points in parametric coordinates" << std::endl;
-//    mfile << "sampling = ;" << std::endl;
-//    mfile << "Pts = zeros (sampling, 2);" << std::endl;
-//    mfile << "n = 1;" << std::endl;
-//    mfile << "for n = 1: sampling" << std::endl;
-//    mfile << "    Pts(n,:)= [(n)/sampling (n)/sampling];" << std::endl;
-//    mfile << "end" << std::endl;
 
     mfile.close();
     std::cout << "T-Spline is exported to " << outfilename << " successfully" << std::endl;
